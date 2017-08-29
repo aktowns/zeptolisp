@@ -51,6 +51,8 @@ ast_node_list_t* cons(node_t* car, ast_node_list_t* cdr) {
 }
 
 ast_node_list_t* append(node_t* value, ast_node_list_t* list) {
+    if (list == NULL) return cons(value, &nil);
+
     ast_node_list_t* cell = malloc(sizeof(ast_node_list_t));
     cell->car = value;
     cell->cdr = &nil;
@@ -64,11 +66,15 @@ ast_node_list_t* append(node_t* value, ast_node_list_t* list) {
     while ((node = parent->cdr)) {
         if (IS_NIL(node)) {
             parent->cdr = cell;
+            return list;
         }
         parent = node;
     }
+    // We didn't find Nil at the end of a list.
+    free(cell);
+    fprintf(stderr, "list append failed.");
 
-    return list;
+    return &nil;
 }
 
 ast_node_list_t* tail(ast_node_list_t* list) {
@@ -83,6 +89,7 @@ node_t* wrapNodeList(ast_node_list_t* list) {
 
 void nodePP(node_t* node) {
     if (node == NULL) return;
+
     printf("=> ");
     switch(node->type) {
         case AST_STRING: 
@@ -109,6 +116,8 @@ void nodePP(node_t* node) {
 }
 
 void listPP(ast_node_list_t* list) {
+    if (list == NULL) return;
+
     nodePP(list->car);
 
     if (!IS_NIL(list->cdr)) {

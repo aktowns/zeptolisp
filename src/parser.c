@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 #define MAX_NUMBER_WIDTH 25 
-parser_result_t* parseNumber(char* input) {
+parser_result_t* parseNumber(const char* input) {
     parser_result_t* res = malloc(sizeof(parser_result_t));
-    char c = input[0];
+    char c;
 
     char* bfr = calloc(sizeof(char), MAX_NUMBER_WIDTH);
     int z = 0;
@@ -21,9 +21,9 @@ parser_result_t* parseNumber(char* input) {
     return res;
 }
 
-parser_result_t* parseString(char* input) {
+parser_result_t* parseString(const char* input) {
     parser_result_t* res = malloc(sizeof(parser_result_t));
-    char c = input[0];
+    char c;
 
     char* bfr = calloc(sizeof(char), 1024);
     int z = 1;
@@ -43,9 +43,9 @@ parser_result_t* parseString(char* input) {
     return res;
 }
 
-parser_result_t* parseSymbol(char* input) {
+parser_result_t* parseSymbol(const char* input) {
     parser_result_t* res = malloc(sizeof(parser_result_t));
-    char c = input[0];
+    char c;
 
     char* bfr = calloc(sizeof(char), 1024);
     int z = 0;
@@ -66,9 +66,9 @@ parser_result_t* parseSymbol(char* input) {
     return res;
 }
 
-parser_result_t* parse(char*);
+parser_result_t* parse(const char*);
 
-int findClosingParenIndex(char* input) {
+int findClosingParenIndex(const char* input) {
     char c;
     int i = 0;
     int balance = 0;
@@ -84,7 +84,7 @@ int findClosingParenIndex(char* input) {
     return -1;
 }
 
-parser_result_t* parseList(char* input) {
+parser_result_t* parseList(const char* input) {
     parser_result_t* res = malloc(sizeof(parser_result_t));
 
     int end = findClosingParenIndex(input);
@@ -100,6 +100,8 @@ parser_result_t* parseList(char* input) {
         bfrOffset += currentNode->consumed;
         rootNode = append(currentNode->value, rootNode);
     }
+    if (currentNode->consumed == 0) free(currentNode);
+    free(bfr);
 
     node_t* node = wrapNodeList(rootNode);
 
@@ -108,7 +110,7 @@ parser_result_t* parseList(char* input) {
     return res;
 }
 
-parser_result_t* parse(char* input) {
+parser_result_t* parse(const char* input) {
 //    printf("entering parse '%s' (%lu)\n", input, strlen(input));
     if (input == NULL || strlen(input) == 0) {
         parser_result_t* pr = malloc(sizeof(parser_result_t));
@@ -136,6 +138,7 @@ parser_result_t* parse(char* input) {
 
         if (!isspace(c) && c != (int)NULL) {
             printf("Syntax error at %d (%c)\n", i, c);
+            free(res);
 
             parser_result_t* pr = malloc(sizeof(parser_result_t));
             pr->consumed = 0;
@@ -144,7 +147,7 @@ parser_result_t* parse(char* input) {
         }
 
         while(isspace(input[i])) {
-            c = input[++i];
+            ++i;
         }
 
         res->consumed = i;

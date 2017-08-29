@@ -3,7 +3,7 @@
 
 #include "ast.h"
 
-#define IS_TYPE(node, typ) (node->type == typ)
+#define IS_TYPE(node, typ) (node != NULL && node->type == typ)
 #define HEAD(node) (node->value.list->car)
 
 #define AS_STRING(node) (node->value.string->value)
