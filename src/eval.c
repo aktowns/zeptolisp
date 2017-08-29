@@ -6,7 +6,7 @@
 #include "ast.h"
 
 node_t* lispPrint(ast_node_list_t* args) {
-    while (!IS_NIL(args)) {
+    while (HAS_VALUE(args)) {
         node_t* node = args->car;
 
         switch(node->type) {
@@ -31,7 +31,7 @@ node_t* lispPrint(ast_node_list_t* args) {
                 puts("");
         }
         args = tail(args);
-        if (!IS_NIL(args)){
+        if (HAS_VALUE(args)){
             printf(" ");
         }
     }
@@ -41,7 +41,7 @@ node_t* lispPrint(ast_node_list_t* args) {
 
 node_t* lispAdd(ast_node_list_t* args) {
     int64_t acc = 0;
-    while (!IS_NIL(args)) {
+    while (HAS_VALUE(args)) {
         if (!IS_TYPE(args->car, AST_NUMBER)) {
             fprintf(stderr, "Add only takes numbers\n");
             return wrapNodeList(&nil);
@@ -76,7 +76,7 @@ node_t* evaluateList(env_t* env[], node_t* node) {
     } else {
         ast_node_list_t* args = tail(node->value.list);
         ast_node_list_t* retArgs = &nil;
-        while (!IS_NIL(args)) {
+        while (HAS_VALUE(args)) {
             retArgs = append(evaluate(env, args->car), retArgs);
             args = tail(args);
         }

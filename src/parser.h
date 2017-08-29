@@ -8,5 +8,5 @@ typedef struct {
     node_t* value;
 } parser_result_t;
 
-parser_result_t* parse(char* input);
+parser_result_t* parse(const char* input);
 #endif

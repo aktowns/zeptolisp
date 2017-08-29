@@ -38,7 +38,8 @@ typedef struct node {
 } node_t;
 
 static ast_node_list_t nil = { .car = NULL, .cdr = NULL };
-#define IS_NIL(x) (x->car == NULL && x->cdr == NULL)
+#define IS_NIL(x) (x != NULL && x->car == NULL && x->cdr == NULL)
+#define HAS_VALUE(x) (x != NULL && x->car != NULL)
 
 node_t* mkNode(ast_type_t type);
 node_t* mkNodeString(char* str);
