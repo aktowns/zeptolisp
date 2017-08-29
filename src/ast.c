@@ -43,6 +43,16 @@ node_t* mkNodeNumber(int64_t num) {
     return node;
 }
 
+node_t* mkQuoted(node_t* child) {
+    node_t* node = mkNode(AST_QUOTED);
+
+    ast_node_quoted_t* quoted = malloc(sizeof(ast_node_quoted_t));
+    quoted->inner = child;
+
+    node->value.quoted = quoted;
+    return node;
+}
+
 ast_node_list_t* cons(node_t* car, ast_node_list_t* cdr) {
     ast_node_list_t* list = malloc(sizeof(ast_node_list_t));
     list->car = car;
@@ -87,10 +97,9 @@ node_t* wrapNodeList(ast_node_list_t* list) {
     return node;
 }
 
-void nodePP(node_t* node) {
+void _nodePP(node_t* node) {
     if (node == NULL) return;
 
-    printf("=> ");
     switch(node->type) {
         case AST_STRING: 
             printf("<STRING \"%s\">", node->value.string->value);
@@ -110,15 +119,24 @@ void nodePP(node_t* node) {
         case AST_SYMBOL:
             printf("<SYMBOL %s>", node->value.symbol->value);
             break;
+        case AST_QUOTED:
+            printf("'");
+            _nodePP(node->value.quoted->inner);
+            break;
         default:
             puts("<UNKNOWN>"); 
     }
 }
 
+void nodePP(node_t* node) {
+    printf("=> ");
+    _nodePP(node);
+}
+
 void listPP(ast_node_list_t* list) {
     if (list == NULL) return;
 
-    nodePP(list->car);
+    _nodePP(list->car);
 
     if (!IS_NIL(list->cdr)) {
         printf(" ");
@@ -132,6 +150,7 @@ const char* strType(node_t* node) {
         case AST_LIST: return "List";
         case AST_NUMBER: return "Number";
         case AST_STRING: return "String";
+        case AST_QUOTED: return "Quote";
         default: return "Unknown";
     }
 }
