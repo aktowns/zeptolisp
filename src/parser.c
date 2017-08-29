@@ -110,8 +110,19 @@ parser_result_t* parseList(const char* input) {
     return res;
 }
 
+parser_result_t* parseQuoted(const char* input) {
+    parser_result_t* res = malloc(sizeof(parser_result_t));
+    parser_result_t* child = parse(input+1);
+
+    res->consumed = child->consumed+1;
+    res->value = mkQuoted(child->value);
+
+    free(child);
+    return res;
+}
+
 parser_result_t* parse(const char* input) {
-//    printf("entering parse '%s' (%lu)\n", input, strlen(input));
+    // printf("entering parse '%s' (%lu)\n", input, strlen(input));
     if (input == NULL || strlen(input) == 0) {
         parser_result_t* pr = malloc(sizeof(parser_result_t));
         pr->consumed = 0;
@@ -129,6 +140,8 @@ parser_result_t* parse(const char* input) {
             res = parseString(input);
         } else if (c == '(') {
             res = parseList(input);
+        } else if (c == '\'') {
+            res = parseQuoted(input);
         } else {
             res = parseSymbol(input);
         }

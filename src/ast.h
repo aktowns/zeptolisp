@@ -7,7 +7,7 @@
 struct node;
 
 typedef enum {
-    AST_STRING, AST_NUMBER, AST_LIST, AST_SYMBOL
+    AST_STRING, AST_NUMBER, AST_LIST, AST_SYMBOL, AST_QUOTED
 } ast_type_t;
 
 typedef struct {
@@ -27,6 +27,10 @@ typedef struct {
     char* value;
 } ast_node_symbol_t;
 
+typedef struct {
+    struct node* inner;
+} ast_node_quoted_t;
+
 typedef struct node {
     ast_type_t type; 
     union {
@@ -34,6 +38,7 @@ typedef struct node {
         ast_node_symbol_t* symbol;
         ast_node_number_t* number;
         ast_node_list_t* list;
+        ast_node_quoted_t* quoted;
     } value;
 } node_t;
 
@@ -42,6 +47,7 @@ static ast_node_list_t nil = { .car = NULL, .cdr = NULL };
 #define HAS_VALUE(x) (x != NULL && x->car != NULL)
 
 node_t* mkNode(ast_type_t type);
+node_t* mkQuoted(node_t* child);
 node_t* mkNodeString(char* str);
 node_t* mkNodeSymbol(char* str);
 node_t* mkNodeNumber(int64_t num);
