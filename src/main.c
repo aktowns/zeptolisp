@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
@@ -26,7 +27,7 @@ char* evaluateSymbol(node_t* node) {
 typedef node_t *(*fn)(ast_node_list_t*);
 
 typedef struct {
-    char* name; 
+    char* name;
     union {
         fn function;
         node_t* data;
@@ -43,13 +44,13 @@ node_t* lispPrint(ast_node_list_t* args) {
         node_t* node = args->car;
 
         switch(node->type) {
-            case AST_STRING: 
+            case AST_STRING:
                 printf("%s", node->value.string->value);
                 break;
-            case AST_NUMBER: 
+            case AST_NUMBER:
                 printf("%ld", node->value.number->value);
                 break;
-            case AST_LIST: 
+            case AST_LIST:
                 if(IS_NIL(node->value.list)) {
                     printf("nil");
                 } else {
@@ -78,7 +79,7 @@ node_t* lispAdd(ast_node_list_t* args) {
         if (!IS_TYPE(args->car, AST_NUMBER)) {
             fprintf(stderr, "Add only takes numbers\n");
             return wrapNodeList(&nil);
-        } 
+        }
         acc += AS_NUMBER(args->car);
         args = tail(args);
     }
@@ -138,6 +139,7 @@ node_t* evaluate(env_t* env[], node_t* node) {
 int main(void) {
     while (true) {
         char* line = readline("> ");
+        add_history(line);
         parser_result_t* node = parse(line);
         nodePP(evaluate(builtins, node->value));
         puts("");
