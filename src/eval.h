@@ -17,16 +17,26 @@ typedef struct {
         fn function;
         node_t* data;
     } value;
-} env_t;
+} context_obj_t;
 
-node_t* evaluateList(env_t*[], node_t*);
-node_t* evaluate(env_t*[], node_t*);
+typedef struct {
+  context_obj_t** context;
+  size_t size;
+  size_t max;
+} context_t;
+
+#define DEFAULT_CONTEXT_SIZE 1024
+
+node_t* evaluateList(context_t*, node_t*);
+node_t* evaluate(context_t*, node_t*);
 node_t* lispPrint(ast_node_list_t*);
 node_t* lispAdd(ast_node_list_t*);
+context_t* defaultEnv(void);
+void freeContext(context_t*);
 
-static env_t print = {.name = "print", .value.function = &lispPrint};
-static env_t add = {.name = "+", .value.function = &lispAdd};
+static context_obj_t print = {.name = "print", .value.function = &lispPrint};
+static context_obj_t add = {.name = "+", .value.function = &lispAdd};
 
-static env_t* builtins[] = { &print, &add, NULL };
+static context_obj_t* builtins[] = { &print, &add, NULL };
 
 #endif
