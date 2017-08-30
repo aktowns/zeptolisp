@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "eval.h"
 #include "ast.h"
+#include "collector.h"
 
 node_t* lispPrint(ast_node_list_t* args) {
     while (HAS_VALUE(args)) {

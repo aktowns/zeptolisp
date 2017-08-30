@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "ast.h"
+#include "collector.h"
 
 node_t* mkNode(ast_type_t type) {
     node_t* node = malloc(sizeof(node_t));

@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "parser.h"
 #include "eval.h"
+#include "collector.h"
 
 int main(int argc, char** argv) {
     int count = 0;

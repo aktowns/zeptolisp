@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "collector.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
