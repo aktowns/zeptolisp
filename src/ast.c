@@ -145,6 +145,8 @@ void listPP(ast_node_list_t* list) {
 } 
 
 const char* strType(node_t* node) {
+    if (node == NULL) return NULL;
+
     switch(node->type) {
         case AST_SYMBOL: return "Symbol";
         case AST_LIST: return "List";

@@ -66,6 +66,7 @@ context_obj_t* lookupEnv(context_t* env, char* name) {
 node_t* evaluateList(context_t* env, node_t* node) {
     if (!IS_TYPE(HEAD(node), AST_SYMBOL)) {
         fprintf(stderr, "Expected a Symbol but got %s\n", strType(HEAD(node)));
+        return NULL;
     }
 
     char* head = HEAD(node)->value.symbol->value;
