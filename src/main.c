@@ -7,7 +7,8 @@
 #include "eval.h"
 
 int main(int argc, char** argv) {
-    int count = 0;
+    printf("zeptolisp version: %s\n\n", VERSION);
+
     context_t* context = defaultEnv();
 
     while (true) {
