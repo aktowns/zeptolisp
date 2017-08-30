@@ -1,13 +1,15 @@
 CC=clang
-CFLAGS=-g 
+CFLAGS=-g -Wall -std=c11 -Iinclude
 LDFLAGS=-lreadline
+OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c))
 
 %.o: %.c
 	$(CC) ${CFLAGS} -c -o $@ $<
 
-zepto: src/main.o src/ast.o src/parser.o src/eval.o
-	$(CC) ${CFLAGS} ${LDFLAGS} -o zepto src/main.o src/ast.o src/parser.o src/eval.o
+zepto: ${OBJS}
+	$(CC) ${CFLAGS} ${LDFLAGS} -o zepto ${OBJS}
 
+.PHONY: clean
 clean:
-	rm -vf src/*.o
+	rm -vf ${OBJS}
 
