@@ -13,10 +13,12 @@ int main(int argc, char** argv) {
     while (true) {
         char* line = readline("> ");
         add_history(line);
-        parser_result_t* node = parse(line);
-        nodePP(evaluate(context, node->value));
-        puts("");
-        free(line);
+        if (strcmp(line, "") != 0) {
+            parser_result_t* node = parse(line);
+            nodePP(evaluate(context, node->value));
+            puts("");
+            free(line);
+        }
     }
 
     freeContext(context);
