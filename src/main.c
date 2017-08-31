@@ -16,6 +16,8 @@ int main(int argc, char** argv) {
         add_history(line);
         if (strcmp(line, "") != 0) {
             parser_result_t* node = parse(line);
+            nodePP(node->value);
+            printf("!!\n");
             nodePP(evaluate(context, node->value));
             puts("");
             free(line);

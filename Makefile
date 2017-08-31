@@ -1,6 +1,6 @@
 CC=clang
 VERSION="$(shell git rev-parse --abbrev-ref HEAD)-$(shell git rev-parse --short HEAD)"
-CFLAGS=-g -Wall -std=c11 -Iinclude -DVERSION='${VERSION}'
+CFLAGS=-g -Wall -std=gnu11 -Iinclude -DVERSION='${VERSION}'
 LDFLAGS=-lreadline
 OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c))
 
