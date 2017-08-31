@@ -22,6 +22,17 @@ node_t* mkNodeString(char* str) {
     return node;
 }
 
+node_t* mkNodeLambda(lambda fn) {
+  node_t* node = mkNode(AST_LAMBDA);
+
+  ast_node_lambda_t* lambda = malloc(sizeof(ast_node_lambda_t));
+  lambda->function = fn;
+
+  node->value.lambda = lambda;
+
+  return node;
+}
+
 node_t* mkNodeSymbol(char* str) {
     node_t* node = mkNode(AST_SYMBOL);
 

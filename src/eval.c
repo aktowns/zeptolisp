@@ -73,6 +73,8 @@ node_t* evaluateList(context_t* env, node_t* node) {
     context_obj_t* fn = lookupEnv(env, head);
     if (fn == NULL) {
         fprintf(stderr, "%s is not in scope\n", head);
+    } else if (!IS_TYPE(fn->data, AST_LAMBDA)) {
+        fprintf(stderr, "%s is not a function\n", head);
     } else {
         ast_node_list_t* args = tail(node->value.list);
         ast_node_list_t* retArgs = &nil;
@@ -80,7 +82,7 @@ node_t* evaluateList(context_t* env, node_t* node) {
             retArgs = append(evaluate(env, args->car), retArgs);
             args = tail(args);
         }
-        return fn->value.function(retArgs);
+        return fn->data->value.lambda->function(retArgs);
     }
     return NULL;
 }
@@ -89,6 +91,10 @@ node_t* evaluate(context_t* env, node_t* node) {
     switch (node->type) {
         case AST_LIST:
             return evaluateList(env, node);
+        case AST_SYMBOL: {
+            context_obj_t* data = lookupEnv(env, node->value.symbol->value);
+            if (data != NULL) return data->data;
+        }
         default:
             return node;
     }
@@ -96,7 +102,7 @@ node_t* evaluate(context_t* env, node_t* node) {
     return NULL;
 }
 
-void addFunctionToContext(context_t* context, char* name, fn function) {
+void addDataToContext(context_t* context, char* name, node_t* data) {
     if(context->size == context->max) {
         context->max += DEFAULT_CONTEXT_SIZE;
         context->context = realloc(context->context, context->max * sizeof(context_obj_t*));
@@ -106,7 +112,7 @@ void addFunctionToContext(context_t* context, char* name, fn function) {
 
     context->context[n] = malloc(sizeof(context_obj_t));
     context->context[n]->name = name;
-    context->context[n]->value.function = function;
+    context->context[n]->data = data;
 
     context->size = n + 1;
 }
@@ -126,8 +132,9 @@ context_t* defaultEnv() {
     env->max = DEFAULT_CONTEXT_SIZE;
     env->context = malloc(env->max * sizeof(context_obj_t*));
 
-    addFunctionToContext(env, "print", &lispPrint);
-    addFunctionToContext(env, "+", &lispAdd);
+    addDataToContext(env, "print", mkNodeLambda(&lispPrint));
+    addDataToContext(env, "+", mkNodeLambda(&lispAdd));
+    addDataToContext(env, "version", mkNodeString(VERSION));
 
     return env;
 }

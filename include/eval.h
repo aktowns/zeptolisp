@@ -9,14 +9,9 @@
 #define AS_STRING(node) (node->value.string->value)
 #define AS_NUMBER(node) (node->value.number->value)
 
-typedef node_t *(*fn)(ast_node_list_t*);
-
 typedef struct {
     char* name;
-    union {
-        fn function;
-        node_t* data;
-    } value;
+    node_t* data;
 } context_obj_t;
 
 typedef struct {
@@ -33,10 +28,5 @@ node_t* lispPrint(ast_node_list_t*);
 node_t* lispAdd(ast_node_list_t*);
 context_t* defaultEnv(void);
 void freeContext(context_t*);
-
-static context_obj_t print = {.name = "print", .value.function = &lispPrint};
-static context_obj_t add = {.name = "+", .value.function = &lispAdd};
-
-static context_obj_t* builtins[] = { &print, &add, NULL };
 
 #endif

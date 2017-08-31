@@ -7,7 +7,7 @@
 struct node;
 
 typedef enum {
-    AST_STRING, AST_NUMBER, AST_LIST, AST_SYMBOL, AST_QUOTED
+    AST_STRING, AST_NUMBER, AST_LIST, AST_SYMBOL, AST_QUOTED, AST_LAMBDA
 } ast_type_t;
 
 typedef struct {
@@ -22,6 +22,11 @@ typedef struct ll {
     struct node* car; 
     struct ll* cdr; 
 } ast_node_list_t;
+
+typedef struct node *(*lambda)(ast_node_list_t*);
+typedef struct {
+    lambda function;
+} ast_node_lambda_t;
 
 typedef struct {
     char* value;
@@ -39,6 +44,7 @@ typedef struct node {
         ast_node_number_t* number;
         ast_node_list_t* list;
         ast_node_quoted_t* quoted;
+        ast_node_lambda_t* lambda;
     } value;
 } node_t;
 
@@ -51,6 +57,7 @@ node_t* mkQuoted(node_t* child);
 node_t* mkNodeString(char* str);
 node_t* mkNodeSymbol(char* str);
 node_t* mkNodeNumber(int64_t num);
+node_t* mkNodeLambda(lambda fn);
 ast_node_list_t* cons(node_t* car, ast_node_list_t* cdr);
 ast_node_list_t* append(node_t* value, ast_node_list_t* list);
 ast_node_list_t* tail(ast_node_list_t* list);
