@@ -14,12 +14,16 @@ int main(int argc, char** argv) {
   while (true) {
     char* line = readline("> ");
     add_history(line);
-    if (strcmp(line, "") != 0) {
-      parser_result_t* node = parse(line);
-      nodePP(evaluate(context, node->value));
-      puts("");
-      free(line);
+    parser_result_t* result = parse(line);
+
+    if(result->error) {
+      printf("Parser error!");
+    } else {
+      nodePP(evaluate(context, result->result));
     }
+
+    puts("");
+    free(line);
   }
 
   freeContext(context);

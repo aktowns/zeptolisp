@@ -1,170 +1,123 @@
-#include "parser.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdbool.h>
 
-#define MAX_NUMBER_WIDTH 25
-parser_result_t* parseNumber(const char* input) {
-  parser_result_t* res = malloc(sizeof(parser_result_t));
-  char c;
+#include "ast.h"
+#include "parser_data_types.h"
+#include "lexer.h"
 
-  char* bfr = calloc(sizeof(char), MAX_NUMBER_WIDTH);
-  int z = 0;
-  for (; isdigit(c = input[z]) || c == '-'; z++) {
-    bfr[z] = c;
-  }
-  node_t* node = mkNodeNumber(atoi(bfr));
-  free(bfr);
+parser_result_t* resolveStack(lexer_state_node_t**, char*, char*);
 
-  res->consumed = z;
-  res->value = node;
-  return res;
+parser_result_t* mkEmptyResult(void) {
+  parser_result_t* result = malloc(sizeof(parser_result_t));
+  result->result = NULL;
+  result->error = 0;
+
+  return result;
 }
 
-parser_result_t* parseString(const char* input) {
-  parser_result_t* res = malloc(sizeof(parser_result_t));
-  char c;
+parser_result_t* mkResult(node_t* node, int error) {
+  parser_result_t* result = malloc(sizeof(parser_result_t));
+  result->result = node;
+  result->error = error;
 
-  char* bfr = calloc(sizeof(char), 1024);
-  int z = 1;
-  for (; (c = input[z]) != '"'; z++) {
-    bfr[z-1] = c;
-    if (z % 1023 == 0) {
-      int sz = strlen(bfr)*sizeof(char);
-      bfr = realloc(bfr, sz + 1024);
-      memset(bfr+sz, 0, sz);
-    }
-  }
-  node_t* node = mkNodeString(bfr);
-  free(bfr);
-
-  res->consumed = z + 1;
-  res->value = node;
-  return res;
+  return result;
 }
 
-parser_result_t* parseSymbol(const char* input) {
-  parser_result_t* res = malloc(sizeof(parser_result_t));
-  char c;
+parser_result_t* resolveList(lexer_state_node_t** state, char* input, char* bfr) {
+  parser_result_t* result = malloc(sizeof(parser_result_t));
+  ast_node_list_t* list = &nil;
 
-  char* bfr = calloc(sizeof(char), 1024);
-  int z = 0;
-  for (; (c = input[z]) != ' ' && (c = input[z]) != '\0'; z++) {
-    bfr[z] = c;
-    bfr[z+1] = '\0';
-    if (z != 0 && z % 1024 == 0) {
-      int sz = strlen(bfr)*sizeof(char);
-      bfr = realloc(bfr, sz + 1024);
-      memset(bfr+sz, 0, sz);
-    }
-  }
-  node_t* node = mkNodeSymbol(bfr);
-  free(bfr);
-
-  res->consumed = z;
-  res->value = node;
-  return res;
-}
-
-parser_result_t* parse(const char*);
-
-int findClosingParenIndex(const char* input) {
-  char c;
-  int i = 0;
-  int balance = 0;
-  while ((c = input[i++]) != 0) {
-    if (c == '(') {
-      balance++;
-    } else if (c == ')') {
-      balance--;
-      if (balance == 0) return i;
-    }
-  }
-
-  return -1;
-}
-
-parser_result_t* parseList(const char* input) {
-  parser_result_t* res = malloc(sizeof(parser_result_t));
-
-  int end = findClosingParenIndex(input);
-
-  char* bfr = calloc(sizeof(char), end);
-  memcpy(bfr, input+1, end-2);
-  bfr[end-1] = '\0';
-
-  parser_result_t* currentNode = NULL;
-  ast_node_list_t* rootNode = &nil;
-  int bfrOffset = 0;
-  while ((currentNode = parse(bfr+bfrOffset))->consumed != 0) {
-    bfrOffset += currentNode->consumed;
-    rootNode = append(currentNode->value, rootNode);
-  }
-  if (currentNode->consumed == 0) free(currentNode);
-  free(bfr);
-
-  node_t* node = wrapNodeList(rootNode);
-
-  res->consumed = end;
-  res->value = node;
-  return res;
-}
-
-parser_result_t* parseQuoted(const char* input) {
-  parser_result_t* res = malloc(sizeof(parser_result_t));
-  parser_result_t* child = parse(input+1);
-
-  res->consumed = child->consumed+1;
-  res->value = mkQuoted(child->value);
-
-  free(child);
-  return res;
-}
-
-parser_result_t* parse(const char* input) {
-  // printf("entering parse '%s' (%lu)\n", input, strlen(input));
-  if (input == NULL || strlen(input) == 0) {
-    parser_result_t* pr = malloc(sizeof(parser_result_t));
-    pr->consumed = 0;
-    pr->value = wrapNodeList(&nil);
-    return pr;
-  }
-
-  char c = input[0];
-  int i = 0;
+  bool recur = true;
+  int firstRun = true;
   do {
-    parser_result_t* res;
-    if (isdigit(c) || c == '-') {
-      res = parseNumber(input);
-    } else if (c == '"') {
-      res = parseString(input);
-    } else if (c == '(') {
-      res = parseList(input);
-    } else if (c == '\'') {
-      res = parseQuoted(input);
+    if (firstRun) {
+      firstRun = false;
     } else {
-      res = parseSymbol(input);
+      *state = (*state)->parent;
+    }
+    lexer_state_node_t* innerState = (*state);
+
+    //statePP(innerState);
+
+    if((*state) == NULL || (*state)->type == PARSER_START_LIST) {
+      *state = (*state)->parent;
+      recur = false;
+    }
+    else {
+      parser_result_t* stackResult = resolveStack(state, input, bfr);
+
+      if(stackResult->error) {
+        free(result);
+        return stackResult;
+      } else {
+        list = cons(stackResult->result, list);
+        free(stackResult);
+      }
     }
 
-    i += res->consumed;
-    c = input[i];
+    memset(bfr, 0, strlen(bfr));
+  } while((*state) != NULL && (*state)->parent != NULL && recur);
 
-    if (!isspace(c) && c != (int)NULL) {
-      printf("Syntax error at %d (%c)\n", i, c);
-      free(res);
+  result->result = wrapNodeList(list);
 
-      parser_result_t* pr = malloc(sizeof(parser_result_t));
-      pr->consumed = 0;
-      pr->value = wrapNodeList(&nil);
-      return pr;
-    }
+  return result;
+}
 
-    while(isspace(input[i])) {
-      ++i;
-    }
+parser_result_t* resolveStack(lexer_state_node_t** state, char* input, char* bfr) {
+  parser_result_t* result = NULL;
+  node_t* node = wrapNodeList(&nil);
+  lexer_state_node_t* innerState = (*state);
 
-    res->consumed = i;
+  if(innerState->balance < 0) {
+    return mkResult(node, 1);
+  }
 
-    return res;
-  } while ((c = input[i++]) != (int)NULL);
+  switch(innerState->type) {
+  case PARSER_STRING:
+    memcpy(bfr, input + innerState->index, innerState->size);
+    node = mkNodeString(bfr);
+    break;
+  case PARSER_NUMBER:
+    memcpy(bfr, input + innerState->index, innerState->size);
+    node = mkNodeNumber(atoi(bfr));
+    break;
+  case PARSER_SYMBOL:
+    memcpy(bfr, input + innerState->index, innerState->size);
+    node = mkNodeSymbol(bfr);
+    break;
+  case PARSER_END_LIST:
+    *state = innerState->parent;
+    result = resolveList(state, input, bfr);
+    break;
+  default:
+    // noop
+    break;
+  }
+
+  if(!result) {
+    result = mkEmptyResult();
+    result->result = node;
+  } else {
+    free(node);
+  }
+
+  return result;
+}
+
+parser_result_t* parse(char* input) {
+  lexer_state_node_t* state = lexString(input);
+
+  lexer_state_node_t* otherState = state;
+  do {
+    statePP(otherState);
+    otherState = otherState->parent;
+  } while(otherState != NULL);
+
+  char* bfr = calloc(sizeof(char), 1024);
+  parser_result_t* result = resolveStack(&state, input, bfr);
+  free(bfr);
+
+  return result;
 }

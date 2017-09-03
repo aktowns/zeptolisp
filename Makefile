@@ -11,7 +11,6 @@ OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c))
 zepto: ${OBJS}
 	$(CC) ${CFLAGS} ${LDFLAGS} -o zepto ${OBJS}
 
-
 .PHONY: clean
 
 nuparse: src/ast.o src/nuparser.o src/lexer.o

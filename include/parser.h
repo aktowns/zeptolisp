@@ -1,12 +1,9 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
-#include "ast.h"
+#include "parser_data_types.h"
 
-typedef struct {
-  int consumed;
-  node_t* value;
-} parser_result_t;
+parser_result_t* resolveStack(lexer_state_node_t**, char*, char*);
+parser_result_t* parse(char*);
 
-parser_result_t* parse(const char* input);
 #endif
