@@ -37,9 +37,6 @@ parser_result_t* resolveList(lexer_state_node_t** state, char* input, char* bfr)
     } else {
       *state = (*state)->parent;
     }
-    lexer_state_node_t* innerState = (*state);
-
-    //statePP(innerState);
 
     if((*state) == NULL || (*state)->type == PARSER_START_LIST) {
       *state = (*state)->parent;
