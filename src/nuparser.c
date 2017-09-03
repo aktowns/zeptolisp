@@ -9,6 +9,22 @@
 
 parser_result_t* resolveStack(lexer_state_node_t**, char*, char*);
 
+parser_result_t* mkEmptyResult(void) {
+  parser_result_t* result = malloc(sizeof(parser_result_t));
+  result->result = NULL;
+  result->error = 0;
+
+  return result;
+}
+
+parser_result_t* mkResult(node_t* node, int error) {
+  parser_result_t* result = malloc(sizeof(parser_result_t));
+  result->result = node;
+  result->error = error;
+
+  return result;
+}
+
 parser_result_t* resolveList(lexer_state_node_t** state, char* input, char* bfr) {
   parser_result_t* result = malloc(sizeof(parser_result_t));
   ast_node_list_t* list = &nil;
@@ -30,9 +46,15 @@ parser_result_t* resolveList(lexer_state_node_t** state, char* input, char* bfr)
       recur = false;
     }
     else {
-      parser_result_t* result = resolveStack(state, input, bfr);
-      list = cons(result->result, list);
-      free(result);
+      parser_result_t* stackResult = resolveStack(state, input, bfr);
+
+      if(stackResult->error) {
+        free(result);
+        return stackResult;
+      } else {
+        list = cons(stackResult->result, list);
+        free(stackResult);
+      }
     }
 
     memset(bfr, 0, strlen(bfr));
@@ -47,6 +69,10 @@ parser_result_t* resolveStack(lexer_state_node_t** state, char* input, char* bfr
   parser_result_t* result = NULL;
   node_t* node = wrapNodeList(&nil);
   lexer_state_node_t* innerState = (*state);
+
+  if(innerState->balance < 0) {
+    return mkResult(node, 1);
+  }
 
   switch(innerState->type) {
   case PARSER_STRING:
@@ -71,7 +97,7 @@ parser_result_t* resolveStack(lexer_state_node_t** state, char* input, char* bfr
   }
 
   if(!result) {
-    result = malloc(sizeof(parser_result_t));
+    result = mkEmptyResult();
     result->result = node;
   } else {
     free(node);
@@ -97,7 +123,14 @@ parser_result_t* parse(char* input) {
 }
 
 int main(void) {
-  nodePP(parse("((abc) (aa) aa)")->result);
+  parser_result_t* result = parse("((abc) (aa) aa)");
+
+  if(result->error) {
+    printf("Parser error!");
+  } else {
+    nodePP(result->result);
+  }
+
   puts("");
   exit(1);
 }
