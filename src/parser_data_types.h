@@ -10,6 +10,7 @@ typedef enum {
 typedef struct lexer_state_node {
   int index;
   int size;
+  int balance;
   parser_node_type_t type;
   struct lexer_state_node* parent;
 } lexer_state_node_t;

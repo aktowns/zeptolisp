@@ -9,6 +9,7 @@ lexer_state_node_t* mkEmptyStateNode(lexer_state_node_t* parent, int index) {
   state->type = PARSER_INIT;
   state->parent = parent;
   state->index = index;
+  state->balance = (parent) ? parent->balance : 0;
   state->size = 0;
 
   return state;
@@ -24,6 +25,7 @@ lexer_state_node_t* mkErrorStateNode(lexer_state_node_t* parent, int index) {
 lexer_state_node_t* mkEndListStateNode(lexer_state_node_t* parent, int index) {
   lexer_state_node_t* state = mkEmptyStateNode(parent, index);
   state->type = PARSER_END_LIST;
+  state->balance -= 1;
 
   return state;
 }
@@ -36,9 +38,11 @@ void updateStateNode(lexer_state_node_t* state, char c, int index) {
   }
   else if(c == '(') {
     state->type = PARSER_START_LIST;
+    state->balance += 1;
   }
   else if(c == ')') {
     state->type = PARSER_END_LIST;
+    state->balance -= 1;
   }
   else if(c == '"') {
     state->index = index + 1;
@@ -65,6 +69,7 @@ lexer_state_node_t* mkStateNode(lexer_state_node_t* parent, char c, int index) {
 void statePP(lexer_state_node_t* state) {
   puts("--");
   printf("Start: %d | Size %d\n", state->index, state->size);
+  printf("Balance: %d\n", state->balance);
   printf("Type: ");
 
   switch(state->type) {
