@@ -26,7 +26,7 @@ parser_result_t* mkResult(node_t* node, int error) {
 }
 
 parser_result_t* resolveList(lexer_state_node_t** state, char* input, char* bfr) {
-  parser_result_t* result = malloc(sizeof(parser_result_t));
+  parser_result_t* result = mkEmptyResult();
   ast_node_list_t* list = &nil;
 
   bool recur = true;
@@ -93,11 +93,11 @@ parser_result_t* resolveStack(lexer_state_node_t** state, char* input, char* bfr
     break;
   }
 
-  if(!result) {
+  if(result) {
+    free(node);
+  } else {
     result = mkEmptyResult();
     result->result = node;
-  } else {
-    free(node);
   }
 
   return result;
@@ -105,12 +105,6 @@ parser_result_t* resolveStack(lexer_state_node_t** state, char* input, char* bfr
 
 parser_result_t* parse(char* input) {
   lexer_state_node_t* state = lexString(input);
-
-  lexer_state_node_t* otherState = state;
-  do {
-    statePP(otherState);
-    otherState = otherState->parent;
-  } while(otherState != NULL);
 
   char* bfr = calloc(sizeof(char), 1024);
   parser_result_t* result = resolveStack(&state, input, bfr);

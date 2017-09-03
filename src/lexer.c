@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "parser_data_types.h"
 
 lexer_state_node_t* mkEmptyStateNode(lexer_state_node_t* parent, int index) {
@@ -105,6 +106,20 @@ void statePP(lexer_state_node_t* state) {
 
 }
 
+int handleEndToken(lexer_state_node_t** state, char c, int index) {
+  if(isspace(c)) {
+    *state = mkEmptyStateNode(*state, index);
+  }
+  else if(c == ')') {
+    *state = mkEndListStateNode(*state, index);
+  }
+  else {
+    return false;
+  }
+
+  return true;
+}
+
 lexer_state_node_t* lexChar(lexer_state_node_t* state, char c, int index) {
   switch(state->type) {
   case PARSER_INIT:
@@ -120,13 +135,7 @@ lexer_state_node_t* lexChar(lexer_state_node_t* state, char c, int index) {
         state->size = index - state->index;
       }
     } else {
-      if(isspace(c)) {
-        state = mkEmptyStateNode(state, index);
-      }
-      else if(c == ')') {
-        state = mkEndListStateNode(state, index);
-      }
-      else {
+      if(!handleEndToken(&state, c, index)) {
         state = mkErrorStateNode(state, index);
       }
     }
@@ -134,32 +143,20 @@ lexer_state_node_t* lexChar(lexer_state_node_t* state, char c, int index) {
     break;
   case PARSER_NUMERIC_SYMBOL:
     if(isdigit(c)) {
-      state->size += 1;
       state->type = PARSER_NUMBER;
+      state->size++;
     }
     else {
       state->type = PARSER_SYMBOL;
 
-      if(isspace(c)) {
-        state = mkEmptyStateNode(state, index);
-      }
-      else if(c ==')') {
-        state = mkEndListStateNode(state, index);
-      }
-      else {
-        state->size += 1;
+      if(!handleEndToken(&state, c, index)) {
+        state->size++;
       }
     }
 
     break;
   case PARSER_NUMBER:
-    if(isspace(c)) {
-      state = mkEmptyStateNode(state, index);
-    }
-    else if(c ==')') {
-      state = mkEndListStateNode(state, index);
-    }
-    else {
+    if(!handleEndToken(&state, c, index)) {
       state->size++;
 
       if (!isdigit(c)) {
@@ -168,13 +165,7 @@ lexer_state_node_t* lexChar(lexer_state_node_t* state, char c, int index) {
     }
     break;
   case PARSER_SYMBOL:
-    if(isspace(c)) {
-      state = mkEmptyStateNode(state, index);
-    }
-    if(c==')') {
-      state = mkEndListStateNode(state, index);
-    }
-    else {
+    if(!handleEndToken(&state, c, index)) {
       state->size++;
     }
   case PARSER_ERROR:
