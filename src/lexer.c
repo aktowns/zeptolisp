@@ -49,9 +49,13 @@ void updateStateNode(lexer_state_node_t* state, char c, int index) {
     state->size = -1;
     state->type = PARSER_STRING;
   }
-  else if(isdigit(c) || c == '-') {
+  else if(isdigit(c)) {
     state->size = 1;
     state->type = PARSER_NUMBER;
+  }
+  else if(c == '-' || c == '+') {
+    state->size = 1;
+    state->type = PARSER_NUMERIC_SYMBOL;
   }
   else {
     state->size = 1;
@@ -128,6 +132,26 @@ lexer_state_node_t* lexChar(lexer_state_node_t* state, char c, int index) {
     }
 
     break;
+  case PARSER_NUMERIC_SYMBOL:
+    if(isdigit(c)) {
+      state->size += 1;
+      state->type = PARSER_NUMBER;
+    }
+    else {
+      state->type = PARSER_SYMBOL;
+
+      if(isspace(c)) {
+        state = mkEmptyStateNode(state, index);
+      }
+      else if(c ==')') {
+        state = mkEndListStateNode(state, index);
+      }
+      else {
+        state->size += 1;
+      }
+    }
+
+    break;
   case PARSER_NUMBER:
     if(isspace(c)) {
       state = mkEmptyStateNode(state, index);
@@ -169,6 +193,10 @@ lexer_state_node_t* lexString(char* input) {
 
   for(int i = 1; i < strlen(input); i++) {
     state = lexChar(state, input[i], i);
+  }
+
+  if(state->type == PARSER_NUMERIC_SYMBOL) {
+    state->type = PARSER_SYMBOL;
   }
 
   return state;
