@@ -7,39 +7,39 @@
 struct node;
 
 typedef enum {
-    AST_STRING, AST_NUMBER, AST_LIST, AST_SYMBOL, AST_QUOTED
+  AST_STRING, AST_NUMBER, AST_LIST, AST_SYMBOL, AST_QUOTED
 } ast_type_t;
 
 typedef struct {
-    char* value;
+  char* value;
 } ast_node_string_t;
 
 typedef struct {
-    int64_t value; 
+  int64_t value;
 } ast_node_number_t;
 
 typedef struct ll {
-    struct node* car; 
-    struct ll* cdr; 
+  struct node* car;
+  struct ll* cdr;
 } ast_node_list_t;
 
 typedef struct {
-    char* value;
+  char* value;
 } ast_node_symbol_t;
 
 typedef struct {
-    struct node* inner;
+  struct node* inner;
 } ast_node_quoted_t;
 
 typedef struct node {
-    ast_type_t type; 
-    union {
-        ast_node_string_t* string;
-        ast_node_symbol_t* symbol;
-        ast_node_number_t* number;
-        ast_node_list_t* list;
-        ast_node_quoted_t* quoted;
-    } value;
+  ast_type_t type;
+  union {
+    ast_node_string_t* string;
+    ast_node_symbol_t* symbol;
+    ast_node_number_t* number;
+    ast_node_list_t* list;
+    ast_node_quoted_t* quoted;
+  } value;
 } node_t;
 
 static ast_node_list_t nil = { .car = NULL, .cdr = NULL };

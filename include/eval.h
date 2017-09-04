@@ -12,11 +12,11 @@
 typedef node_t *(*fn)(ast_node_list_t*);
 
 typedef struct {
-    char* name;
-    union {
-        fn function;
-        node_t* data;
-    } value;
+  char* name;
+  union {
+    fn function;
+    node_t* data;
+  } value;
 } context_obj_t;
 
 typedef struct {
