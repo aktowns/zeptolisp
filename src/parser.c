@@ -39,7 +39,6 @@ parser_result_t* resolveList(lexer_state_node_t** state, char* input, char* bfr)
     }
 
     if((*state) == NULL || (*state)->type == PARSER_START_LIST) {
-      *state = (*state)->parent;
       recur = false;
     }
     else {
@@ -98,6 +97,11 @@ parser_result_t* resolveStack(lexer_state_node_t** state, char* input, char* bfr
   } else {
     result = mkEmptyResult();
     result->result = node;
+  }
+
+  if((*state)->parent != NULL && (*state)->parent->type == PARSER_QUOTE) {
+    result->result = mkQuoted(result->result);
+    *state = (*state)->parent;
   }
 
   return result;

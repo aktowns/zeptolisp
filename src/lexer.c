@@ -45,6 +45,9 @@ void updateStateNode(lexer_state_node_t* state, char c, int index) {
     state->type = PARSER_END_LIST;
     state->balance -= 1;
   }
+  else if(c == '\'') {
+    state->type = PARSER_QUOTE;
+  }
   else if(c == '"') {
     state->index = index + 1;
     state->size = -1;
@@ -80,6 +83,9 @@ void statePP(lexer_state_node_t* state) {
   switch(state->type) {
   case PARSER_INIT:
     printf("init");
+    break;
+  case PARSER_QUOTE:
+    printf("quote");
     break;
   case PARSER_START_LIST:
     printf("start list");
@@ -125,6 +131,7 @@ lexer_state_node_t* lexChar(lexer_state_node_t* state, char c, int index) {
   case PARSER_INIT:
     updateStateNode(state, c, index);
     break;
+  case PARSER_QUOTE:
   case PARSER_START_LIST:
   case PARSER_END_LIST:
     state = mkStateNode(state, c, index);
