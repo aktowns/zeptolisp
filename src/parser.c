@@ -64,27 +64,26 @@ parser_result_t* resolveList(lexer_state_node_t** state, char* input, char* bfr)
 parser_result_t* resolveStack(lexer_state_node_t** state, char* input, char* bfr) {
   parser_result_t* result = NULL;
   node_t* node = wrapNodeList(&nil);
-  lexer_state_node_t* innerState = (*state);
 
-  if(innerState->balance < 0) {
+  if((*state)->balance < 0) {
     return mkResult(node, 1);
   }
 
-  switch(innerState->type) {
+  switch((*state)->type) {
   case PARSER_STRING:
-    memcpy(bfr, input + innerState->index, innerState->size);
+    memcpy(bfr, input + (*state)->index, (*state)->size);
     node = mkNodeString(bfr);
     break;
   case PARSER_NUMBER:
-    memcpy(bfr, input + innerState->index, innerState->size);
+    memcpy(bfr, input + (*state)->index, (*state)->size);
     node = mkNodeNumber(atoi(bfr));
     break;
   case PARSER_SYMBOL:
-    memcpy(bfr, input + innerState->index, innerState->size);
+    memcpy(bfr, input + (*state)->index, (*state)->size);
     node = mkNodeSymbol(bfr);
     break;
   case PARSER_END_LIST:
-    *state = innerState->parent;
+    *state = (*state)->parent;
     result = resolveList(state, input, bfr);
     break;
   default:
